@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.29.2
+
+### Improved
+
+- **`[switch] no-cd` config option**: Disable directory change by default with `no-cd = true` in the `[switch]` section. Use `--cd` flag to override when needed. Useful for tmux workflows where sessions handle navigation. [Docs](https://worktrunk.dev/config/) ([#1401](https://github.com/max-sixty/worktrunk/pull/1401), thanks @jradtilbrook)
+
+### Fixed
+
+- **GPG signature output breaks `wt list`**: When `log.showSignature` is set in git config, GPG verification lines contaminated stdout in `git log` calls, causing parse failures. All git log invocations now pass `--no-show-signature`. ([#1465](https://github.com/max-sixty/worktrunk/pull/1465), thanks @apre)
+
+- **Tab completions ignore shell substring matching**: The binary was prefix-filtering branch candidates before returning them to the shell, preventing fish substring matching (`auth<TAB>` → `feature/user-auth`) and zsh fuzzy matching. Completions now return all candidates and let the shell apply its own matching. ([#1471](https://github.com/max-sixty/worktrunk/pull/1471), thanks @benjaminbauer for reporting [#1468](https://github.com/max-sixty/worktrunk/issues/1468))
+
+- **Tab completions unusable in large repos**: Repos with many remote branches triggered the "do you wish to see all N possibilities?" prompt. Remote-only branches are now excluded when the total exceeds 100. ([#1442](https://github.com/max-sixty/worktrunk/pull/1442), thanks @cperalt for reporting [#1415](https://github.com/max-sixty/worktrunk/issues/1415))
+
+- **Nushell shell integration broken in Home Manager module**: The Nix Home Manager module used `use` instead of `source` for the nushell init script, and template definitions were not exported, preventing the `wt` wrapper function from loading. ([#1476](https://github.com/max-sixty/worktrunk/pull/1476), thanks @mystilleef for reporting [#1475](https://github.com/max-sixty/worktrunk/issues/1475))
+
+### Documentation
+
+- **Manual commit message recipes**: Added recipes to Tips & Patterns for using `commit.generation.command` config to write commit messages by hand with `$EDITOR` instead of an LLM. ([#1469](https://github.com/max-sixty/worktrunk/pull/1469), thanks @viicslen for the feature request in [#1467](https://github.com/max-sixty/worktrunk/issues/1467))
+
+### Internal
+
+- **Skill/CI guidance**: Improved Claude bot skills for triage, code review, and CI monitoring. ([#1485](https://github.com/max-sixty/worktrunk/pull/1485), [#1477](https://github.com/max-sixty/worktrunk/pull/1477), [#1474](https://github.com/max-sixty/worktrunk/pull/1474), [#1472](https://github.com/max-sixty/worktrunk/pull/1472), [#1470](https://github.com/max-sixty/worktrunk/pull/1470), [#1458](https://github.com/max-sixty/worktrunk/pull/1458), [#1447](https://github.com/max-sixty/worktrunk/pull/1447))
+
 ## 0.29.1
 
 ### Improved
