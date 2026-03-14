@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.29.3
+
+### Improved
+
+- **Unified timeout model for list and picker**: Consolidated the picker's per-command timeout and list's experimental `timeout-ms` into a shared config with `[list] task-timeout-ms` (per-task, shared by both) and per-context wall-clock budgets (`[list] timeout-ms`, `[switch.picker] timeout-ms`). Picker default budget raised from 200ms per-command to 500ms wall-clock. ([#1515](https://github.com/max-sixty/worktrunk/pull/1515), [#1487](https://github.com/max-sixty/worktrunk/pull/1487))
+
+- **Pre-flight template validation for `wt switch`**: Switch templates (`--execute` and hook commands) are now validated before worktree creation, preventing orphan worktrees from syntax errors like `{{ unclosed`. ([#1500](https://github.com/max-sixty/worktrunk/pull/1500))
+
+### Fixed
+
+- **`wt remove` allowed removing default branch worktree**: The default branch worktree (e.g., main) could be removed because it was trivially "integrated" into itself. Now blocked unless `-D` is used. ([#1460](https://github.com/max-sixty/worktrunk/pull/1460), thanks @cperalt for reporting [#1448](https://github.com/max-sixty/worktrunk/issues/1448))
+
+- **Symlinks copied as regular files in `copy-ignored`**: Top-level gitignored symlinks were copied as regular files instead of preserved as symlinks, breaking setups like Yarn monorepos. ([#1489](https://github.com/max-sixty/worktrunk/pull/1489), thanks @karmeleon for reporting [#1488](https://github.com/max-sixty/worktrunk/issues/1488))
+
+- **Missing placeholders in WorkingDiff and Upstream columns**: These columns showed blank instead of `⋯`/`·` placeholders when data wasn't loaded, breaking the visual loading signal. ([#1503](https://github.com/max-sixty/worktrunk/pull/1503))
+
+### Documentation
+
+- **Step command docs**: Added promote subdoc, improved swap description, linked Operations index to subcommand sections, moved aliases section after subcommands, fixed cross-filesystem fallback description. ([#1505](https://github.com/max-sixty/worktrunk/pull/1505), [#1495](https://github.com/max-sixty/worktrunk/pull/1495), [#1502](https://github.com/max-sixty/worktrunk/pull/1502), [#1513](https://github.com/max-sixty/worktrunk/pull/1513))
+
+- **List docs**: Documented placeholder symbols (`⋯`, `·`) in help text, rewrote LLM summaries section. ([#1496](https://github.com/max-sixty/worktrunk/pull/1496), [#1506](https://github.com/max-sixty/worktrunk/pull/1506))
+
+- **Homepage**: Added headline features (CI status, PR checkout, hash_port) and tips link. ([#1501](https://github.com/max-sixty/worktrunk/pull/1501))
+
+- **Experimental badge pills**: Styled `[experimental]` markers as pill badges in web docs. ([#1499](https://github.com/max-sixty/worktrunk/pull/1499))
+
+### Internal
+
+- **Deduplicated hook config resolution**: Extracted shared hook-type list and made `lookup_hook_configs` pub(crate). ([#1512](https://github.com/max-sixty/worktrunk/pull/1512))
+
+- **Agent Skills metadata**: Added `metadata.internal: true` to repo-scoped skills so `npx skills add` only offers user-facing ones. ([#1491](https://github.com/max-sixty/worktrunk/pull/1491))
+
 ## 0.29.2
 
 ### Improved
