@@ -294,6 +294,24 @@ After approving or staying silent, monitor CI using the approach from
   ```
   Skip if already dismissed. **Do not push fixes on human-authored PRs** — post
   the analysis and offer to fix, then wait for the author to accept.
+- **A check failed** and it's a transient flake (unrelated to the PR changes) →
+  1. **Re-run the failed jobs** on any PR (bot or human-authored):
+     ```bash
+     gh run rerun <run-id> --failed
+     ```
+  2. **Report the flake to the tracking issue.** Search for an open issue about
+     the specific flaky test (`gh issue list --search "<test name>" --state open`).
+     If found, check for a recent bot comment. Edit the existing comment to
+     append the new instance (PR number, platform, error snippet, run link)
+     rather than posting a new one — this keeps the issue tidy. If no recent bot
+     comment exists, add one. If no issue exists, open one.
+     ```bash
+     # Find the bot's last comment on the issue
+     LAST_COMMENT=$(gh issue view <issue-number> --json comments \
+       --jq '[.comments[] | select(.author.login == "worktrunk-bot")] | last | {id: .url, createdAt: .createdAt}')
+     # If the bot commented recently, edit that comment; otherwise post a new one
+     ```
+     Skip if the bot already commented today and the comment includes this PR.
 
 ### 6. Resolve handled suggestions
 
