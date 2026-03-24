@@ -148,6 +148,7 @@ vt100 = "0.16"
 ansi-to-html = "0.2.2"
 wt-perf = { path = "tests/helpers/wt-perf" }
 similar = "2.7.0"
+env-test-guard = { git = "https://github.com/ghektest/env-test-guard" }
 
 [[bench]]
 name = "completion"
