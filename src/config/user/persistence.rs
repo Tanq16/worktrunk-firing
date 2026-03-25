@@ -322,6 +322,36 @@ impl UserConfig {
             }
         }
 
+        // Validate timeout values
+        const MAX_TIMEOUT_MS: u64 = 3_600_000; // 1 hour
+        if let Some(ref list) = self.configs.list {
+            if let Some(ms) = list.task_timeout_ms {
+                if ms > MAX_TIMEOUT_MS {
+                    return Err(ConfigError::Message(format!(
+                        "list.task-timeout-ms ({ms}) exceeds maximum of {MAX_TIMEOUT_MS}ms (1 hour)"
+                    )));
+                }
+            }
+            if let Some(ms) = list.timeout_ms {
+                if ms > MAX_TIMEOUT_MS {
+                    return Err(ConfigError::Message(format!(
+                        "list.timeout-ms ({ms}) exceeds maximum of {MAX_TIMEOUT_MS}ms (1 hour)"
+                    )));
+                }
+            }
+        }
+        if let Some(ref switch) = self.configs.switch
+            && let Some(ref picker) = switch.picker
+        {
+            if let Some(ms) = picker.timeout_ms {
+                if ms > MAX_TIMEOUT_MS {
+                    return Err(ConfigError::Message(format!(
+                        "switch-picker.timeout-ms ({ms}) exceeds maximum of {MAX_TIMEOUT_MS}ms (1 hour)"
+                    )));
+                }
+            }
+        }
+
         // Validate commit generation config (check both old and new locations)
         let commit_gen = self.commit_generation(None);
         if commit_gen.template.is_some() && commit_gen.template_file.is_some() {

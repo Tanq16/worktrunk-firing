@@ -870,6 +870,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
+name = "env-test-guard"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f932caa59f26a8792633e483c24f97f48b000ba8ee317ad296bbd9eae47c689"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "env_filter"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3221,6 +3230,7 @@ dependencies = [
  "dashmap",
  "dirs",
  "dunce",
+ "env-test-guard",
  "env_logger",
  "etcetera",
  "fs2",

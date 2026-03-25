@@ -1720,6 +1720,65 @@ fn test_validation_template_mutual_exclusivity() {
     }
 }
 
+#[test]
+fn test_validation_list_task_timeout_exceeds_maximum() {
+    let content = "[list]\ntask-timeout-ms = 9999999999";
+    let err = UserConfig::load_from_str(content).unwrap_err().to_string();
+    assert!(
+        err.contains("exceeds maximum"),
+        "expected 'exceeds maximum', got: {err}"
+    );
+}
+
+#[test]
+fn test_validation_list_timeout_exceeds_maximum() {
+    let content = "[list]\ntimeout-ms = 9999999999";
+    let err = UserConfig::load_from_str(content).unwrap_err().to_string();
+    assert!(
+        err.contains("exceeds maximum"),
+        "expected 'exceeds maximum', got: {err}"
+    );
+}
+
+#[test]
+fn test_validation_switch_picker_timeout_exceeds_maximum() {
+    let content = "[switch.picker]\ntimeout-ms = 9999999999";
+    let err = UserConfig::load_from_str(content).unwrap_err().to_string();
+    assert!(
+        err.contains("exceeds maximum"),
+        "expected 'exceeds maximum', got: {err}"
+    );
+}
+
+#[test]
+fn test_validation_timeout_at_maximum_allowed() {
+    let content = "[list]\ntask-timeout-ms = 3600000";
+    assert!(UserConfig::load_from_str(content).is_ok());
+}
+
+#[test]
+fn test_validation_timeout_zero_allowed() {
+    // 0 means "disable timeout" — must not be rejected
+    let content = "[list]\ntask-timeout-ms = 0\ntimeout-ms = 0";
+    assert!(UserConfig::load_from_str(content).is_ok());
+}
+
+#[test]
+fn test_validation_timeout_just_over_maximum() {
+    let content = "[list]\ntask-timeout-ms = 3600001";
+    let err = UserConfig::load_from_str(content).unwrap_err().to_string();
+    assert!(
+        err.contains("exceeds maximum"),
+        "expected 'exceeds maximum', got: {err}"
+    );
+}
+
+#[test]
+fn test_validation_switch_picker_timeout_valid() {
+    let content = "[switch.picker]\ntimeout-ms = 500";
+    assert!(UserConfig::load_from_str(content).is_ok());
+}
+
 // =========================================================================
 // save_to() tests
 // =========================================================================

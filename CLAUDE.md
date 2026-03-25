@@ -53,7 +53,86 @@ Key skills:
 
 ## Testing
 
-See `tests/CLAUDE.md` for test infrastructure, assertion style, and test granularity guidelines.
+### Test Isolation
+
+Tests that spawn `wt` must be isolated from the host environment to prevent
+directive leakage, config pollution, and git interference.
+
+| Method | Use when |
+|--------|----------|
+| `repo.wt_command()` | Running wt commands with a TestRepo |
+| `wt_command()` | Running wt without a TestRepo (free function) |
+| `repo.git_command()` | Running git commands |
+
+```rust
+// ✅ GOOD: Isolated via TestRepo
+let output = repo.wt_command()
+    .args(["switch", "--create", "feature"])
+    .output()?;
+
+// ❌ BAD: Inherits host environment
+let output = Command::new(env!("CARGO_BIN_EXE_wt"))
+    .args(["switch", "--create", "feature"])
+    .current_dir(repo.root_path())
+    .output()?;
+```
+
+For environment-dependent tests, use `Command::new()` with `.env()` to set
+variables in a subprocess, or use the test isolation helpers.
+
+### Timing Tests
+
+Use long timeouts (5+ seconds) for reliability on slow CI, but poll frequently
+(10-50ms) so tests complete quickly when things work:
+
+```rust
+// ✅ GOOD: Long timeout, fast polling
+let timeout = Duration::from_secs(5);
+let poll_interval = Duration::from_millis(10);
+let start = Instant::now();
+while start.elapsed() < timeout {
+    if condition_met() { break; }
+    thread::sleep(poll_interval);
+}
+```
+
+Use the helpers: `wait_for_file()`, `wait_for_file_count()`, `wait_for_file_content()`.
+These use exponential backoff (10ms → 500ms cap) with a 15-second default timeout.
+
+**Testing absence:** When verifying something did NOT happen, use a fixed 500ms+ sleep.
+
+### Test Style
+
+**Snapshot env drift is cosmetic** — accept env var ordering changes without comment.
+
+**Inline snapshots over multi-assert:**
+
+```rust
+// ✅ One snapshot captures all formatting
+assert_snapshot!(format_message("hello"), @"  │ hello");
+
+// ❌ Spot-checks that miss structural regressions
+assert!(result.contains("│"));
+```
+
+**One test per belief** — group related inputs into a single test when they
+verify the same behavior. Table-driven tests work well for input→output mappings.
+
+### Deterministic Time
+
+Tests use `TEST_EPOCH` (2025-01-01) for reproducible timestamps. Production code
+should use `worktrunk::utils::epoch_now()` which respects `WORKTRUNK_TEST_EPOCH`.
+
+### Coverage in PTY Tests
+
+PTY tests use `cmd.env_clear()` for isolation. Pass through LLVM env vars via
+`configure_pty_command(&mut cmd)` or `pass_coverage_env_to_pty_cmd(&mut cmd)`.
+
+### README Examples
+
+For tests generating README output, use PTY-based execution from `tests/common/pty.rs`
+(`build_pty_command()` + `exec_cmd_in_pty()`) for combined stdout+stderr with proper
+temporal ordering. Use standard `insta_cmd` snapshots for all other tests.
 
 ### Running Tests
 
@@ -400,6 +479,39 @@ Most data is stable for the duration of a command. `Repository` caches read-only
 - `list_worktrees()` — changes as we create/remove worktrees
 
 When adding new cached methods, see `RepoCache` in `src/git/repository/mod.rs` for patterns (repo-wide via `OnceCell`, per-worktree via `DashMap`).
+
+## Contribution Workflow
+
+### Pull Request Standards
+
+All pull requests must meet the following quality bar before review or merge:
+
+- **Test validation:** A successful `cargo test` execution is a mandatory prerequisite before any PR diff can be reviewed. This catches regressions early and validates that test infrastructure changes don't break the existing suite.
+- **Commit hygiene:** Each commit should be a single logical change. Avoid mixing unrelated changes (e.g., a bug fix and a formatting cleanup) in the same commit.
+- **PR scope:** Keep PRs focused. A PR that touches more than ~400 lines across unrelated subsystems should be split unless the changes are inherently coupled.
+
+### Commit Message Style
+
+Follow conventional commit format:
+
+```
+<type>: <concise summary>
+
+<optional body explaining motivation and context>
+```
+
+Common types: `fix`, `feat`, `refactor`, `test`, `docs`, `perf`, `chore`
+
+The summary line should be imperative mood ("Add timeout validation", not "Added timeout validation") and under 72 characters. The body should explain *why*, not *what* — the diff shows what changed.
+
+### Config Changes
+
+When adding or modifying configuration fields:
+
+- Add validation in `UserConfig::validate()` for any field with domain constraints
+- Add a unit test in `src/config/user/tests.rs` for both valid and invalid values
+- Update the relevant `after_long_help` text if the field is user-facing
+- Document the field in `wt.toml` examples where applicable
 
 ## Releases
 
